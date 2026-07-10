@@ -2,7 +2,7 @@
 
 appl3 license 
 
-https://OperationsResearchBit.github.io/ Friction-Wars/
+https://OperationsResearchBit.github.io/Friction-Wars/
 
 
 
