@@ -5,7 +5,7 @@ appl3 license
 https://OperationsResearchBit.github.io/ Friction-Wars/
 
 
-```markdown
+
 # Friction Wars
 
 A tense, minimalist strategy game about movement, resource management, and brutal close-quarters combat.
