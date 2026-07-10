@@ -10,7 +10,13 @@ https://OperationsResearchBit.github.io/ Friction-Wars/
 
 A tense, minimalist strategy game about movement, resource management, and brutal close-quarters combat.
 
+**Every pixel costs. Every collision kills.**
+
 **Drag your units. Every pixel costs stamina. Eliminate the enemy.**
+
+A fast-paced, minimalist drag-and-drop strategy game where movement is your greatest weapon — and your biggest weakness.
+
+<img width="760" height="576" alt="image" src="https://github.com/user-attachments/assets/20a3f136-5a7e-40ed-826e-dc9d364c4f9e" />
 
 ---
 
@@ -72,7 +78,63 @@ A tense, minimalist strategy game about movement, resource management, and bruta
 **Made with 🔥 for fun and strategy**
 
 Enjoy the game!
-```
 
+---
 
+# Contributing
 
+Ideas and contributions are welcome! Feel free to:
+
+Open an issue for bug reports or feature requests
+
+Submit pull requests
+
+Suggest new mechanics (different units, obstacles, etc.)
+
+## The Core Loop
+
+Drag your units across the battlefield.  
+Watch your **Stamina** drain with every movement.  
+Smash into enemies to eliminate them.
+
+**One decisive drag per turn.**  
+**Total annihilation is the only victory.**
+
+---
+
+## ✨ Features
+
+- **Addictive Drag Mechanics** — Real distance-based stamina consumption
+- **High-Stakes Strategy** — One move per turn forces smart positioning
+- **Brutal Collision Combat** — Direct contact = elimination
+- **Sleek Dark Design** — Beautiful, modern, and highly responsive
+- **Instant Play** — Zero installation. Just open and fight.
+- **Perfect for Quick Matches** — Ideal for short, intense 2-player sessions
+
+## 🎮 How to Play
+
+1. Open the game in your browser
+2. Drag your colored pieces (Red = Player 1, Blue = Player 2)
+3. Manage your limited **Stamina** wisely
+4. Collide with enemy pieces to destroy them
+5. Eliminate all enemy units to win
+
+**Pro Tip:** Overextend and you'll run out of stamina. Play too safe and your opponent will overwhelm you.
+
+---
+
+## Installation
+
+### Easiest Way (Recommended)
+
+1. Download `index.html` from the repository
+2. Open the file directly in your browser (Chrome, Firefox, or Edge)
+3. Start playing immediately
+
+### Or Clone the Repository
+
+```bash
+git clone https://github.com/OperationsResearchBit/Friction-Wars.git
+cd Friction-Wars
+
+Then simply open index.html in your browser.
