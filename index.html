@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friction Wars - Drag & Move Strategy</title>
+    <style>
+        body {
+            margin: 0;
+            background: #1e1e24;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            overflow: hidden;
+        }
+        #ui {
+            margin: 15px 0;
+            text-align: center;
+            width: 800px;
+        }
+        #turn-indicator {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            transition: color 0.3s;
+        }
+        .p1-turn { color: #ff4d4d; text-shadow: 0 0 10px #ff4d4d; }
+        .p2-turn { color: #3399ff; text-shadow: 0 0 10px #3399ff; }
+       
+        #stamina-container {
+            width: 400px;
+            height: 24px;
+            background: #333;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #555;
+            margin: 10px auto;
+        }
+        #stamina-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            transition: width 0.08s linear, background-color 0.4s;
+        }
+        #game-board {
+            width: 800px;
+            height: 500px;
+            background: 
+                linear-gradient(#2c2c35 1px, transparent 1px),
+                linear-gradient(90deg, #2c2c35 1px, transparent 1px);
+            background-size: 50px 50px;
+            position: relative;
+            border: 6px solid #444;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+        /* Zones */
+        .zone {
+            position: absolute;
+            top: 0;
+            width: 160px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 22px;
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 1;
+        }
+        #p1-zone { 
+            left: 0; 
+            background: linear-gradient(to right, #ff0000, transparent); 
+            border-right: 3px dashed #ff4d4d; 
+        }
+        #p2-zone { 
+            right: 0; 
+            background: linear-gradient(to left, #0000ff, transparent); 
+            border-left: 3px dashed #3399ff; 
+        }
+        /* Pieces */
+        .piece {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            position: absolute;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.5),
+                        inset 0 -4px 6px rgba(255,255,255,0.3);
+            z-index: 10;
+            transition: transform 0.05s;
+            user-select: none;
+        }
+        .piece:active { 
+            cursor: grabbing; 
+            transform: scale(1.15); 
+        }
+        .p1-piece { 
+            background: radial-gradient(circle at 40% 30%, #ff8787, #cc1111 60%, #990000); 
+            border: 3px solid #fff; 
+        }
+        .p2-piece { 
+            background: radial-gradient(circle at 40% 30%, #7abfff, #1155cc 60%, #0a3d99); 
+            border: 3px solid #fff; 
+        }
+       
+        button {
+            margin-top: 12px;
+            padding: 12px 28px;
+            font-size: 18px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover { background: #666; transform: translateY(-2px); }
+        button:active { transform: scale(0.95); }
+
+        #instructions {
+            margin-top: 8px;
+            font-size: 15px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div id="turn-indicator" class="p1-turn">Player 1's Turn (Red)</div>
+        <div id="stamina-container">
+            <div id="stamina-bar"></div>
+        </div>
+        <div id="instructions">Drag your pieces • Movement costs Stamina • Collide with enemies to eliminate them</div>
+        <button id="end-turn-btn">End Turn</button>
+    </div>
+
+    <div id="game-board">
+        <div id="p1-zone" class="zone">P1 START ZONE</div>
+        <div id="p2-zone" class="zone">P2 START ZONE</div>
+    </div>
+
+    <script>
+        const board = document.getElementById('game-board');
+        const staminaBar = document.getElementById('stamina-bar');
+        const turnIndicator = document.getElementById('turn-indicator');
+        const endTurnBtn = document.getElementById('end-turn-btn');
+
+        let currentPlayer = 1;
+        let maxStamina = 500;
+        let currentStamina = maxStamina;
+        let activePiece = null;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        let hasMovedThisTurn = false;
+
+        const pieceData = [
+            { id: 'p1_1', player: 1, x: 60, y: 80, label: 'Inf' },
+            { id: 'p1_2', player: 1, x: 60, y: 220, label: 'Inf' },
+            { id: 'p1_3', player: 1, x: 60, y: 360, label: 'Inf' },
+            { id: 'p2_1', player: 2, x: 690, y: 80, label: 'Inf' },
+            { id: 'p2_2', player: 2, x: 690, y: 220, label: 'Inf' },
+            { id: 'p2_3', player: 2, x: 690, y: 360, label: 'Inf' }
+        ];
+
+        function initGame() {
+            pieceData.forEach(p => createPiece(p));
+            updateStaminaUI();
+            endTurnBtn.addEventListener('click', endTurn);
+        }
+
+        function createPiece(p) {
+            const div = document.createElement('div');
+            div.id = p.id;
+            div.className = `piece p${p.player}-piece`;
+            div.innerText = p.label;
+            div.style.left = `${p.x}px`;
+            div.style.top = `${p.y}px`;
+            div.addEventListener('mousedown', (e) => startDrag(e, div, p));
+            board.appendChild(div);
+        }
+
+        function startDrag(e, element, pieceInfo) {
+            if (pieceInfo.player !== currentPlayer || hasMovedThisTurn || currentStamina <= 0) return;
+
+            activePiece = { element, info: pieceInfo };
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function drag(e) {
+            if (!activePiece || currentStamina <= 0) return;
+
+            const deltaX = e.clientX - lastMouseX;
+            const deltaY = e.clientY - lastMouseY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            if (distance > 0) {
+                currentStamina = Math.max(0, currentStamina - distance * 1.8); // tuned sensitivity
+                updateStaminaUI();
+
+                const boardRect = board.getBoundingClientRect();
+                let newLeft = activePiece.element.offsetLeft + deltaX;
+                let newTop = activePiece.element.offsetTop + deltaY;
+
+                newLeft = Math.max(0, Math.min(boardRect.width - 48, newLeft));
+                newTop = Math.max(0, Math.min(boardRect.height - 48, newTop));
+
+                activePiece.element.style.left = `${newLeft}px`;
+                activePiece.element.style.top = `${newTop}px`;
+
+                activePiece.info.x = newLeft;
+                activePiece.info.y = newTop;
+
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+
+                if (currentStamina <= 0) stopDrag();
+            }
+        }
+
+        function stopDrag() {
+            if (activePiece) {
+                hasMovedThisTurn = true;
+                checkCollisions(activePiece);
+                activePiece = null;
+            }
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        function updateStaminaUI() {
+            const percentage = (currentStamina / maxStamina) * 100;
+            staminaBar.style.width = `${percentage}%`;
+
+            if (percentage > 60) staminaBar.style.background = 'linear-gradient(90deg, #4caf50, #8bc34a)';
+            else if (percentage > 25) staminaBar.style.background = 'linear-gradient(90deg, #ff9800, #f57c00)';
+            else staminaBar.style.background = 'linear-gradient(90deg, #f44336, #d32f2f)';
+        }
+
+        function checkCollisions(movedPiece) {
+            const mRect = movedPiece.element.getBoundingClientRect();
+
+            for (let i = pieceData.length - 1; i >= 0; i--) {
+                const other = pieceData[i];
+                if (other.id === movedPiece.info.id) continue;
+
+                const otherEl = document.getElementById(other.id);
+                if (!otherEl) continue;
+
+                const oRect = otherEl.getBoundingClientRect();
+                const dist = Math.hypot(mRect.left - oRect.left, mRect.top - oRect.top);
+
+                if (dist < 45) {
+                    if (other.player !== currentPlayer) {
+                        otherEl.remove();
+                        pieceData.splice(i, 1);
+                        alert(`💥 Combat! Player ${currentPlayer} eliminated an enemy piece!`);
+                    }
+                }
+            }
+        }
+
+        function checkWinConditions() {
+            const p1Pieces = pieceData.filter(p => p.player === 1);
+            const p2Pieces = pieceData.filter(p => p.player === 2);
+
+            if (p2Pieces.length === 0) {
+                alert("🎉 Player 1 (Red) Wins the Match!");
+                resetGame();
+            } else if (p1Pieces.length === 0) {
+                alert("🎉 Player 2 (Blue) Wins the Match!");
+                resetGame();
+            }
+        }
+
+        function endTurn() {
+            checkWinConditions();
+
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            currentStamina = maxStamina;
+            hasMovedThisTurn = false;
+
+            turnIndicator.innerText = `Player ${currentPlayer}'s Turn (${currentPlayer === 1 ? 'Red' : 'Blue'})`;
+            turnIndicator.className = currentPlayer === 1 ? 'p1-turn' : 'p2-turn';
+            updateStaminaUI();
+        }
+
+        function resetGame() {
+            setTimeout(() => location.reload(), 800);
+        }
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>
